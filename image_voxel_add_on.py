@@ -18,6 +18,9 @@ bl_info = {
     "category": "Add Mesh",
 }
 
+material_name = "Image Voxel Material"
+vertex_color_layer_name = "Vertex Color"
+collection_name = "voxels"
 class VoxelFactory:
     def __init__(self, imageName, display_size=2, baseScale=1, topScale=0.5):
         self.image = bpy.data.images[imageName]
@@ -28,11 +31,14 @@ class VoxelFactory:
         self.offset = self.scale / 2
         self.baseOffset = (self.scale * baseScale) / 2
         self.topOffset = (self.scale * topScale) / 2
-        self.collection = bpy.data.collections.new("voxels")
-        self.bmesh = bmesh.new()
-        self.color_layer = self.bmesh.loops.layers.color.new("v_color")
+        self.collection = bpy.data.collections.get(collection_name)
+        if self.collection is None:
+            self.collection = bpy.data.collections.new(collection_name)
+            bpy.context.scene.collection.children.link(self.collection)
 
-        bpy.context.scene.collection.children.link(self.collection)
+        self.bmesh = bmesh.new()
+        self.color_layer = self.bmesh.loops.layers.color.new(vertex_color_layer_name)
+
 
     def get_color(self, x, y):
         stride = self.image.channels
@@ -40,10 +46,27 @@ class VoxelFactory:
         index = x * stride + y * stride * width
         return self.image.pixels[index: index + self.image.channels]
 
+    def make_material(self):
+        mat = bpy.data.materials.get(material_name)
+        if mat is None:
+            mat = bpy.data.materials.new(material_name)
+            mat.use_nodes = True
+            nodes = mat.node_tree.nodes
+            principled_bsdf_node = nodes.get("Principled BSDF")
+            vertex_color_node = None
+            if not "VERTEX_COLOR" in [node.type for node in nodes]:
+                vertex_color_node = nodes.new(type = "ShaderNodeVertexColor")
+            else:
+                vertex_color_node = nodes.get("Vertex Color")
+            vertex_color_node.layer_name = vertex_color_layer_name
+            links = mat.node_tree.links
+            link = links.new(vertex_color_node.outputs[0], principled_bsdf_node.inputs[0])
+        return mat
+
     def make_voxel_geom(self, x, y):
         color = self.get_color(x, y)
         red,green,blue,alpha = color
-        h,s,l = colorsys.rgb_to_hls(red,green,blue)
+        h,l,s = colorsys.rgb_to_hls(red,green,blue)
         height = l * (10 * self.scale)
 
         # The Offset points of a rectangular prism:
@@ -83,11 +106,13 @@ class VoxelFactory:
         mesh = bpy.data.meshes.new("Voxel")
         self.bmesh.to_mesh(mesh)
         mesh.update() # required?
+        mesh.materials.append(self.make_material())
+
         obj = bpy.data.objects.new("Voxel", mesh)
         obj.location = (xx, yy, 0)
+
         self.collection.objects.link(obj)
         return obj
-
 
 class AddImageVoxel(Operator):
     """Create a new Voxel Image Object"""
@@ -95,9 +120,8 @@ class AddImageVoxel(Operator):
     bl_label = "Add Voxel Object"
     bl_options = {'REGISTER', 'UNDO'}
 
-
     display_size: bpy.props.FloatProperty(name="Display Size", default=2, min=0.1, max=10)
-    voxel_image: bpy.props.StringProperty(name="String Value")
+    voxel_image: bpy.props.StringProperty(name="Source Image DATA", default="")
 
     def execute(self, context):
         voxel_image = self.voxel_image
@@ -113,7 +137,7 @@ class AddImageVoxel(Operator):
         layout = self.layout
         scene = context.scene
         col = layout.column()
-        col.label(text="Generate Things:")
+        col.label(text="Generate Voxel Mesh:")
         col = layout.column()
         col.prop_search(self, "voxel_image", bpy.data, "images")
         col = layout.column()
@@ -125,10 +149,11 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_class(AddImageVoxel)
-    bpy.types.VIEW3D_MT_object.append(menu_func)
+    bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
 
 def unregister():
     bpy.utils.unregister_class(AddImageVoxel)
+    bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()
