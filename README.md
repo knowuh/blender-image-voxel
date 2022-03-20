@@ -2,6 +2,19 @@
 
 ![example mesh created with image voxel add-on](./example-02.png)
 
+## Install instructions:
+
+1. Download `image_voxel_add_on.py`
+2. In the Blender preferences menu, select the Add-ons tab in the left.
+3. Click on the `Instal ...` button in the top right of the interface.
+4. Browse and select the downloaded `image_voxel_add_on.py` script,
+and then click on the `Install Add-on` button.
+5. Back in the Add-ons tab, make sure the checkbox next to the "Add Mesh: Image To Voxel" is ticked.
+
+## License:
+
+- [MIT License](license.txt)
+
 ## What is it?
 
 This add-on adds a new menu item to the 3D view `Add Mesh` menu
@@ -21,7 +34,7 @@ collection named `voxels`.
 
 Meshes created with this add-on have a vertex color group called `voxel colors`
 
-## Background:
+## History:
 
 This addon is the evolution to some [simple gists](https://gist.github.com/knowuh/48136d7a17387e7cf6c3).
 This version:
@@ -32,11 +45,3 @@ This version:
 - Allows you to specify the final image size.
 - Uses a vertex color layer to store pixel color data.
 
-## Install instructions:
-
-1. Download `image_voxel_add_on.py`
-2. In the Blender preferences menu, select the Add-ons tab in the left.
-3. Click on the `Instal ...` button in the top right of the interface.
-4. Browse and select the downloaded `image_voxel_add_on.py` script,
-and then click on the `Install Add-on` button.
-5. Back in the Add-ons tab, make sure the checkbox next to the "Add Mesh: Image To Voxel" is ticked.
