@@ -1,6 +1,6 @@
 # Blender Image Voxel add-on
 
-![example mesh created with image voxel add-on](./example-02.png)
+![example mesh created with image voxel add-on](./example.png)
 
 ## Install instructions:
 
