@@ -22,7 +22,7 @@ material_name = "Image Voxel Material"
 vertex_color_layer_name = "Vertex Color"
 collection_name = "voxels"
 class VoxelFactory:
-    def __init__(self, imageName, display_size=2, baseScale=1, topScale=0.5):
+    def __init__(self, imageName, display_size=2, baseScale=1, topScale=1):
         self.image = bpy.data.images[imageName]
         self.size = self.image.size
         self.scale = display_size / self.size[0]
@@ -121,11 +121,17 @@ class AddImageVoxel(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     display_size: bpy.props.FloatProperty(name="Display Size", default=2, min=0.1, max=10)
+    topScale: bpy.props.FloatProperty(name="Top Scale", default=1, min=0.1, max=1)
+    baseScale: bpy.props.FloatProperty(name="Base Scale", default=1, min=0.1, max=1)
     voxel_image: bpy.props.StringProperty(name="Source Image DATA", default="")
 
     def execute(self, context):
+        display_size = self.display_size
+        topScale = self.topScale
+        baseScale = self.baseScale
         voxel_image = self.voxel_image
-        vf = VoxelFactory(voxel_image, display_size=2)
+        
+        vf = VoxelFactory(voxel_image, display_size, topScale, baseScale)
         vf.make_object(0, 0)
         return {'FINISHED'}
 
@@ -142,6 +148,10 @@ class AddImageVoxel(Operator):
         col.prop_search(self, "voxel_image", bpy.data, "images")
         col = layout.column()
         col.prop(self, "display_size")
+        col = layout.column()
+        col.prop(self, "topScale")
+        col = layout.column()
+        col.prop(self, "baseScale")
 
 # Only needed if you want to add into a dynamic menu
 def menu_func(self, context):
